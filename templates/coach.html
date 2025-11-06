@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>${title}</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/profile">Profile</a>
+        <a href="/coach">Coach</a>
+        <a href="/upload">Upload Match</a>
+    </nav>
+    <main>
+        <h1>Personal Coach</h1>
+        <p>Your current rank: <strong>${rank}</strong></p>
+        <section>
+            <h2>Strengths</h2>
+            <p>${strengths_list}</p>
+        </section>
+        <section>
+            <h2>Weaknesses</h2>
+            <p>${weaknesses_list}</p>
+        </section>
+        <section>
+            <h2>Biggest Discrepancy</h2>
+            <p>${biggest_diff}</p>
+        </section>
+        <section>
+            <h2>Short Term Tips</h2>
+            <p>${short_tips}</p>
+        </section>
+        <section>
+            <h2>Long Term Tips</h2>
+            <p>${long_tips}</p>
+        </section>
+    </main>
+</body>
+</html>

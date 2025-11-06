@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>${title}</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/profile">Profile</a>
+        <a href="/coach">Coach</a>
+        <a href="/upload">Upload Match</a>
+    </nav>
+    <main>
+        <h1>${username}'s Profile</h1>
+        <section>
+            <h2>Player Info</h2>
+            <ul>
+                <li><strong>Rank:</strong> ${rank}</li>
+                <li><strong>Followers:</strong> ${followers}</li>
+                <li><strong>Friends:</strong> ${friends}</li>
+            </ul>
+        </section>
+        <section>
+            <h2>Average Match Metrics</h2>
+            <table class="metrics">
+                <tr>
+                    <th>Metric</th>
+                    <th>Value</th>
+                </tr>
+                <tr>
+                    <td>Boost Usage (ratio)</td>
+                    <td>${boost_usage}</td>
+                </tr>
+                <tr>
+                    <td>Flip Count</td>
+                    <td>${flip_count}</td>
+                </tr>
+                <tr>
+                    <td>Shots</td>
+                    <td>${shots}</td>
+                </tr>
+                <tr>
+                    <td>Goals</td>
+                    <td>${goals}</td>
+                </tr>
+            </table>
+        </section>
+        <section>
+            <h2>Top Games</h2>
+            <p>${top_games}</p>
+        </section>
+    </main>
+</body>
+</html>

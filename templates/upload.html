@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>${title}</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/profile">Profile</a>
+        <a href="/coach">Coach</a>
+        <a href="/upload">Upload Match</a>
+    </nav>
+    <main>
+        <h1>Upload Match Replay</h1>
+        <form method="post" action="/upload" enctype="multipart/form-data">
+            <label for="file">Select replay JSON file:</label><br>
+            <input type="file" id="file" name="match_file" accept="application/json"><br><br>
+            <input type="submit" value="Upload">
+        </form>
+        <p>After uploading, you will be redirected to your profile where the statistics from your replay will be reflected.</p>
+    </main>
+</body>
+</html>

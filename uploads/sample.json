@@ -1,0 +1,10 @@
+{
+  "events": [
+    {"button": "boost"}, {"button": "flip"}, {"button": "boost"},
+    {"button": "flip"}, {"button": "flip"}
+  ],
+  "shots": 2,
+  "goals": 1,
+  "total_frames": 100,
+  "boost_frames": 10
+}
