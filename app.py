@@ -116,6 +116,27 @@ def init_db(path: str = DATABASE_PATH) -> None:
                 "INSERT INTO streamers (name, rank, metrics) VALUES (?, ?, ?)",
                 (name, rank, json.dumps(metrics)),
             )
+        conn.commit()
+    # After seeding dummy entries, attempt to augment the streamer
+    # dataset with scraped data from YouTube and Twitch.  The scraping
+    # function is a stub when network access is unavailable.  Wrap the
+    # import in a try/except so that failures do not prevent database
+    # initialisation.
+    try:
+        # Import the scraper module dynamically.  When app.py is run
+        # directly, "scraper" is located in the same directory as
+        # this file.  Ensure that the directory is on sys.path before
+        # attempting to import.  If the import fails (e.g. missing
+        # network access or module errors), the failure is ignored.
+        import sys as _sys
+        if BASE_DIR not in _sys.path:
+            _sys.path.insert(0, BASE_DIR)
+        import scraper  # type: ignore
+        if hasattr(scraper, 'update_streamer_table'):
+            scraper.update_streamer_table(conn)
+    except Exception:
+        # Ignore scraping errors in limited environments
+        pass
     conn.commit()
     conn.close()
 
@@ -305,6 +326,17 @@ class RLAnalyzerRequestHandler(BaseHTTPRequestHandler):
             self.render_home()
         elif route == "/profile":
             self.render_profile()
+        elif route.startswith("/player/"):
+            # Public profile view: /player/<id>
+            try:
+                user_id = int(route.split("/", 2)[2])
+                self.render_profile(user_id=user_id, public=True)
+            except (IndexError, ValueError):
+                self.send_response(400)
+                self.end_headers()
+                self.wfile.write(b"Invalid player ID")
+        elif route == "/top":
+            self.render_top_players()
         elif route == "/coach":
             self.render_coach()
         elif route == "/upload":
@@ -360,9 +392,14 @@ class RLAnalyzerRequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    def render_profile(self) -> None:
-        """Render the profile page for the default user."""
-        user_id = self.get_default_user_id()
+    def render_profile(self, user_id: Optional[int] = None, public: bool = False) -> None:
+        """
+        Render the profile page for a user.  If ``user_id`` is None,
+        the default user is used.  When ``public`` is True, the page
+        is presented without personal actions (e.g. upload link).
+        """
+        if user_id is None:
+            user_id = self.get_default_user_id()
         conn = sqlite3.connect(DATABASE_PATH)
         c = conn.cursor()
         c.execute("SELECT username, rank, followers, friends FROM users WHERE id = ?", (user_id,))
@@ -375,7 +412,7 @@ class RLAnalyzerRequestHandler(BaseHTTPRequestHandler):
         # Determine top games by selecting matches with highest goals
         c.execute("SELECT id, metrics FROM matches WHERE user_id = ?", (user_id,))
         match_rows = c.fetchall()
-        top_games_list = []
+        top_games_list: list[tuple[int, float]] = []
         for match_id, metrics_json in match_rows:
             try:
                 m = json.loads(metrics_json)
@@ -397,8 +434,60 @@ class RLAnalyzerRequestHandler(BaseHTTPRequestHandler):
             "goals": metrics.get("goals", 0.0),
             "top_games": top_games_str,
         }
-        body = self.render_template("profile.html", context)
+        # Choose template based on public flag
+        template_name = "profile.html" if not public else "public_profile.html"
+        body = self.render_template(template_name, context)
         conn.close()
+        self.send_response(200)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def render_top_players(self) -> None:
+        """Render a page showing the top players for each metric and overall."""
+        conn = sqlite3.connect(DATABASE_PATH)
+        c = conn.cursor()
+        # Fetch all users and compute their aggregated metrics
+        c.execute("SELECT id, username FROM users")
+        users = c.fetchall()
+        # Initialise ranking lists keyed by metric
+        rankings: Dict[str, list[tuple[int, str, float]]] = {
+            'boost_usage': [], 'flip_count': [], 'shots': [], 'goals': [], 'overall': []
+        }
+        for uid, uname in users:
+            metrics = aggregate_user_metrics(uid, conn)
+            # Append (uid, username, metric_value) to each metric ranking
+            rankings['boost_usage'].append((uid, uname, metrics.get('boost_usage', 0.0)))
+            rankings['flip_count'].append((uid, uname, metrics.get('flip_count', 0.0)))
+            rankings['shots'].append((uid, uname, metrics.get('shots', 0.0)))
+            rankings['goals'].append((uid, uname, metrics.get('goals', 0.0)))
+            # Compute a simple overall score by normalising counts
+            overall_score = (
+                metrics.get('boost_usage', 0.0) +
+                metrics.get('flip_count', 0.0) / 10.0 +
+                metrics.get('shots', 0.0) / 10.0 +
+                metrics.get('goals', 0.0) / 10.0
+            )
+            rankings['overall'].append((uid, uname, round(overall_score, 3)))
+        # Sort each ranking descending by metric value
+        for key in rankings:
+            rankings[key].sort(key=lambda x: x[2], reverse=True)
+        conn.close()
+        # Prepare context: convert ranking lists to HTML strings with links
+        def format_ranking(lst: list[tuple[int, str, float]]) -> str:
+            return "; ".join([
+                f"<a href='/player/{uid}'>{name}</a> ({value})" for uid, name, value in lst[:5]
+            ]) or "None"
+        context = {
+            'title': 'Top Players',
+            'boost_leaders': format_ranking(rankings['boost_usage']),
+            'flip_leaders': format_ranking(rankings['flip_count']),
+            'shot_leaders': format_ranking(rankings['shots']),
+            'goal_leaders': format_ranking(rankings['goals']),
+            'overall_leaders': format_ranking(rankings['overall']),
+        }
+        body = self.render_template('top_players.html', context)
         self.send_response(200)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))

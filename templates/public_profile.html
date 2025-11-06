@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>${title}</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/top">Top Players</a>
+        <a href="/profile">My Profile</a>
+    </nav>
+    <main>
+        <h1>${username}'s Public Profile</h1>
+        <section>
+            <h2>Rank: ${rank}</h2>
+        </section>
+        <section>
+            <h2>Average Match Metrics</h2>
+            <table class="metrics">
+                <tr><th>Metric</th><th>Value</th></tr>
+                <tr><td>Boost Usage (ratio)</td><td>${boost_usage}</td></tr>
+                <tr><td>Flip Count</td><td>${flip_count}</td></tr>
+                <tr><td>Shots</td><td>${shots}</td></tr>
+                <tr><td>Goals</td><td>${goals}</td></tr>
+            </table>
+        </section>
+        <section>
+            <h2>Best Games</h2>
+            <p>${top_games}</p>
+        </section>
+    </main>
+</body>
+</html>

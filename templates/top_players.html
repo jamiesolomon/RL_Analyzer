@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>${title}</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/top">Top Players</a>
+        <a href="/profile">My Profile</a>
+    </nav>
+    <main>
+        <h1>Top Players</h1>
+        <p>This leaderboard shows the top players for each statistic and overall.  Click a player's name to view their public profile.</p>
+        <section>
+            <h2>Boost Usage Leaders</h2>
+            <p>${boost_leaders}</p>
+        </section>
+        <section>
+            <h2>Flip Count Leaders</h2>
+            <p>${flip_leaders}</p>
+        </section>
+        <section>
+            <h2>Shot Leaders</h2>
+            <p>${shot_leaders}</p>
+        </section>
+        <section>
+            <h2>Goal Leaders</h2>
+            <p>${goal_leaders}</p>
+        </section>
+        <section>
+            <h2>Overall Leaders</h2>
+            <p>${overall_leaders}</p>
+        </section>
+    </main>
+</body>
+</html>
